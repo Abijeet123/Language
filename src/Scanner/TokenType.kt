@@ -1,4 +1,4 @@
-package scanner
+package Scanner
 
 enum class TokenType{
     //single character token
