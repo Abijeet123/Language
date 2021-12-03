@@ -2,6 +2,7 @@ package scanner
 
 import Parser.parser
 import Scanner.Scanner
+import interpreter.interpreter
 import java.io.IOException
 import java.nio.charset.Charset
 import java.nio.file.Files
@@ -31,6 +32,10 @@ fun run(source: String) {
 //    }
     val parserr = parser(scanner.tokens)
     val expression = parserr.parse()
+    val inter = interpreter()
+    if (expression != null) {
+        inter.interpret(expression)
+    }
     if (hadError) {
         return
     }
