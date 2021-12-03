@@ -1,5 +1,6 @@
 package scanner
 
+import Parser.parser
 import Scanner.Scanner
 import java.io.IOException
 import java.nio.charset.Charset
@@ -25,8 +26,13 @@ var hadError : Boolean = false
 fun run(source: String) {
     val scanner = Scanner(source)
     scanner.scanTokens()
-    for (tokens in scanner.tokens){
-        println(tokens)
+//    for (tokens in scanner.tokens){
+//        println(tokens)
+//    }
+    val parserr = parser(scanner.tokens)
+    val expression = parserr.parse()
+    if (hadError) {
+        return
     }
 }
 fun report(line : Int, where : String, message: String) {
