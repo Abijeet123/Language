@@ -1,13 +1,14 @@
 package Parser
 
 import Scanner.*
-import scanner.report
+//import scanner.report
 import java.lang.RuntimeException
-import kotlin.math.exp
-import java.time.temporal.TemporalAdjusters.previous
+import Parser.stmt
+import interpreter.report
 
+//import scanner.report
 
-
+//import Scanner.report
 
 
 class parser(val tokens : List<Token>) {
@@ -15,6 +16,7 @@ class parser(val tokens : List<Token>) {
 
     }
     var current = 0
+
     fun expression() : Expr {
         return equality()
     }
@@ -94,7 +96,7 @@ class parser(val tokens : List<Token>) {
     }
     fun error(token : Token, message: String) : ParseError{
         if (token.type == TokenType.EOF){
-            report(token.line ,"at end",message)
+           report(token.line ,"at end",message)
         }
         report(token.line,"at ${token.lexeme} ' ",message)
         return ParseError()
@@ -138,13 +140,34 @@ class parser(val tokens : List<Token>) {
             advance()
         }
     }
+    fun statement() : stmt? {
+        if (match(TokenType.PRINT)) return printStatement()
+        return expressionStatement()
+    }
 
-    fun parse() : Expr?{
+    fun printStatement() : stmt{
+        val value = expression()
+        consume(TokenType.SEMI_COLON,"Expect ';' after expression.")
+        return stmt.Print(value)
+    }
+
+    fun expressionStatement(): stmt? {
+        val expr = expression()
+        consume(TokenType.SEMI_COLON, "Expect ';' after expression.")
+        return stmt.Expression(expr)
+    }
+    fun parse() : MutableList<stmt>? {
         try {
-            return expression()
+//            return expression()
+            val statements : MutableList<stmt> = mutableListOf()
+            while (!isAtEnd()){
+                statement()?.let { statements.add(it) }
+                return statements
+            }
         }catch (error : ParseError){
             return null
         }
+        return null
     }
 
 

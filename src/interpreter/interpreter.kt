@@ -1,11 +1,32 @@
 package interpreter
-import Parser.Expr
+import Parser.*
 import Scanner.Token
 import Scanner.TokenType
+import Parser.stmt
 import java.lang.Exception
-import javax.management.RuntimeErrorException
 
-class interpreter : Expr.Visitor<Any> {
+
+
+
+
+
+
+
+class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
+
+    override fun visitExpressionStmt(stmt: stmt.Expression): Any? {
+        val value = evaluate(stmt.expression)
+        return value
+    }
+
+    override fun visitPrintStmt(stmt: stmt.Print): Any? {
+        val value = evaluate(stmt.expression)
+//        println(value.toString())
+        return value.toString();
+    }
+
+
+
     override fun visitLiteralExpr(expr: Expr.Literal?): Any? {
         if (expr != null) {
             return expr.value
@@ -98,9 +119,14 @@ class interpreter : Expr.Visitor<Any> {
         if (right is Double) return
         throw Exception("Operand must be a number.")
     }
-    fun interpret(expression : Expr) {
-            val value = evaluate(expression)
-            println(value.toString())
+    fun execute(statement  : stmt) : Any?{
+        return statement.accept(this)
+    }
+    fun interpret(statements : MutableList<stmt>) {
+            for (statement in statements){
+                val value = execute(statement)
+                println(value.toString())
+            }
     }
 
 }

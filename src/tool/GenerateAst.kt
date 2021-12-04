@@ -12,12 +12,16 @@ fun main(args: Array<String>) {
     }
     val outputDir = args[0]
 
-    defineAst(outputDir, "Expr", Arrays.asList(
-        "Binary   ! val left : Expr, val operator : Token, val right : Expr",
-        "Grouping ! val expression : Expr",
-        "Literal  ! val value : Any?",
-        "Unary    ! val operator : Token, val right : Expr"
-    ));
+//    defineAst(outputDir, "Expr", Arrays.asList(
+//        "Binary   ! val left : Expr, val operator : Token, val right : Expr",
+//        "Grouping ! val expression : Expr",
+//        "Literal  ! val value : Any?",
+//        "Unary    ! val operator : Token, val right : Expr"
+//    ));
+    defineAst(outputDir, "Stmt",Arrays.asList(
+        "Expression ! val expression : Expr",
+        "Print ! val expression : Expr"
+    ))
 }
 
 private fun defineVisitor(

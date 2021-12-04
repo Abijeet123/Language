@@ -1,5 +1,7 @@
 package Scanner
 
+import interpreter.error
+
 
 class Scanner(val source : String) {
     var tokens : MutableList<Token> = mutableListOf()
@@ -58,7 +60,7 @@ class Scanner(val source : String) {
             advance()
         }
         if (isAtEnd()){
-            scanner.error(line, "Unterminated string")
+            error(line, "Unterminated string")
             return
         }
         advance()
@@ -135,7 +137,7 @@ class Scanner(val source : String) {
             '\r' -> {}
             '\t' -> {}
             '"' -> string()
-            else -> if (isDigit(c)) number() else if(isAlpha(c)){ identifier()} else scanner.error(
+            else -> if (isDigit(c)) number() else if(isAlpha(c)){ identifier()} else error(
                 line,
                 "Unexpected character."
             )

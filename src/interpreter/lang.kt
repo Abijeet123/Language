@@ -1,4 +1,4 @@
-package scanner
+package interpreter
 
 import Parser.parser
 import Scanner.Scanner
