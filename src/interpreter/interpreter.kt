@@ -12,22 +12,28 @@ import java.lang.Exception
 
 
 
+
+
+var env = enviornment()
 class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
-
-    override fun visitExpressionStmt(stmt: stmt.Expression): Any? {
-        val value = evaluate(stmt.expression)
-        return value
+    var envv = enviornment()
+    override fun visitBlockstmt(Stmt: stmt.Block): Any? {
+        executeBlock(Stmt.stmt, enviornment(env))
+        return null
     }
 
-    override fun visitPrintStmt(stmt: stmt.Print): Any? {
-        val value = evaluate(stmt.expression)
-//        println(value.toString())
-        return value.toString();
+    fun executeBlock(statements: MutableList<stmt?>?, envirn: enviornment){
+        val previous = env
+        try {
+            env = envirn
+            for (statement in statements!!) {
+                execute(statement)
+            }
+        } finally {
+            env = previous
+        }
     }
-
-
-
-    override fun visitLiteralExpr(expr: Expr.Literal?): Any? {
+    override fun visitLiteralExpr(expr: Expr.Literal): Any? {
         if (expr != null) {
             return expr.value
         }
@@ -119,14 +125,46 @@ class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
         if (right is Double) return
         throw Exception("Operand must be a number.")
     }
-    fun execute(statement  : stmt) : Any?{
-        return statement.accept(this)
+    fun execute(statement: stmt?) : Any?{
+//        println(statement)
+        return statement?.accept(this)
+    }
+
+    override fun visitVariableExpr(expr: Expr.Variable): Any? {
+        return env.gett(expr.name)
     }
     fun interpret(statements : MutableList<stmt>) {
             for (statement in statements){
                 val value = execute(statement)
+                if (value != null)
                 println(value.toString())
             }
+    }
+
+    override fun visitAssignExpr(expr: Expr.Assign): Any? {
+        val value = evaluate(expr.value)
+        env.define(expr.name, value)
+        return value
+    }
+
+    override fun visitExpressionstmt(stmt: stmt.Expression): Any? {
+        val value = evaluate(stmt.expression)
+        return value
+    }
+
+    override fun visitVarstmt(statement: stmt.Var): Any? {
+        var value : Any? = null
+        if (statement.initializer != null){
+            value = evaluate(statement.initializer)
+        }
+        env.define(statement.name,value)
+        return null
+    }
+
+    override fun visitPrintstmt(stmt: stmt.Print): Any? {
+        val value = evaluate(stmt.expression)
+//        println(value.toString())
+        return value.toString();
     }
 
 }

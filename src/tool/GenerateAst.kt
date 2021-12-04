@@ -12,15 +12,19 @@ fun main(args: Array<String>) {
     }
     val outputDir = args[0]
 
-//    defineAst(outputDir, "Expr", Arrays.asList(
-//        "Binary   ! val left : Expr, val operator : Token, val right : Expr",
-//        "Grouping ! val expression : Expr",
-//        "Literal  ! val value : Any?",
-//        "Unary    ! val operator : Token, val right : Expr"
-//    ));
-    defineAst(outputDir, "Stmt",Arrays.asList(
+    defineAst(outputDir, "Expr", Arrays.asList(
+        "Binary   ! val left : Expr, val operator : Token, val right : Expr",
+        "Grouping ! val expression : Expr",
+        "Literal  ! val value : Any?",
+        "Unary    ! val operator : Token, val right : Expr",
+        "Variable ! val name : Token",
+        "Assign ! val name : Token,val value : Expr"
+    ));
+    defineAst(outputDir, "stmt",Arrays.asList(
+        "Block ! val stmt : MutableList<stmt?>",
         "Expression ! val expression : Expr",
-        "Print ! val expression : Expr"
+        "Print ! val expression : Expr",
+        "Var ! val name : Token, val initializer : Expr"
     ))
 }
 
@@ -33,7 +37,7 @@ private fun defineVisitor(
         writer.println(
 //            "    fun visit$typeName$baseName(
 //                     ${baseName.toLowerCase()} : $baseName) : R"
-            "   fun visit$typeName$baseName(${baseName.toLowerCase()} : $baseName) : R"
+            "   fun visit$typeName$baseName(${baseName.toLowerCase()} : $typeName) : R?"
         )
     }
     writer.println("  }")
@@ -43,7 +47,7 @@ fun defineAst(outputDir: String, baseName: String, types : List<String>) {
     val path = "$outputDir/$baseName.kt"
     val writer = PrintWriter(path, "UTF-8")
 
-    writer.println("package parser")
+    writer.println("package Parser")
     writer.println()
     writer.println("import java.util.List")
     writer.println("import Scanner.*")
@@ -59,7 +63,7 @@ fun defineAst(outputDir: String, baseName: String, types : List<String>) {
     }
 
     writer.println();
-    writer.println("  fun <R> accept(visitor: Visitor<R>) : R");
+    writer.println("abstract  fun <R> accept(visitor: Visitor<R>) : R?");
 
     writer.println("}")
     writer.close()
@@ -70,12 +74,12 @@ private fun defineType(
     className: String, fieldList: String
 ) {
     writer.println(
-        " class $className($fieldList){"
+        " class $className($fieldList) :${baseName}(){"
     )
 
 
     writer.println();
-    writer.println("    fun <R>accept(visitor : Visitor<R>):R {");
+    writer.println("    override fun <R>accept(visitor : Visitor<R>):R? {");
     writer.println("      return visitor.visit$className$baseName(this);");
     writer.println("    }");
 

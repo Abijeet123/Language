@@ -1,10 +1,18 @@
 package Parser
 
+import Parser.Expr.Assign
 import Scanner.*
 //import scanner.report
 import java.lang.RuntimeException
-import Parser.stmt
-import interpreter.report
+import interpreter.*
+import java.util.ArrayList
+
+
+
+
+
+
+
 
 //import scanner.report
 
@@ -17,8 +25,22 @@ class parser(val tokens : List<Token>) {
     }
     var current = 0
 
+    fun assignment(): Expr {
+        val expr = equality()
+        if (match(TokenType.EQUAL)) {
+            val equals = previous()
+            val value = assignment()
+            if (expr is Expr.Variable) {
+                val name = expr.name
+                return Assign(name, value)
+            }
+            error(equals, "Invalid assignment target.")
+        }
+        return expr
+    }
+
     fun expression() : Expr {
-        return equality()
+        return assignment()
     }
     fun equality() : Expr {
         var expr = comparision()
@@ -79,6 +101,7 @@ class parser(val tokens : List<Token>) {
             consume(TokenType.RIGHT_PAREN,"Expect ')' after expression.")
             return Expr.Grouping(expr)
         }
+        if (match(TokenType.IDENTIFIER)) return Expr.Variable(previous())
         throw error(peek(),"Expect expression")
     }
     fun unary() : Expr{
@@ -142,9 +165,21 @@ class parser(val tokens : List<Token>) {
     }
     fun statement() : stmt? {
         if (match(TokenType.PRINT)) return printStatement()
+        if (match(TokenType.LEFT_BRACE))
+            return stmt.Block(block())
         return expressionStatement()
+//        if (match(TokenType.LEFT_BRACE))
+//            return stmt.Block(block())
     }
 
+    fun block(): MutableList<stmt?>? {
+        val statements: MutableList<stmt?> = ArrayList<stmt?>()
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration())
+        }
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+        return statements
+    }
     fun printStatement() : stmt{
         val value = expression()
         consume(TokenType.SEMI_COLON,"Expect ';' after expression.")
@@ -156,21 +191,41 @@ class parser(val tokens : List<Token>) {
         consume(TokenType.SEMI_COLON, "Expect ';' after expression.")
         return stmt.Expression(expr)
     }
+
+    fun varDeclaration(): stmt? {
+        val name: Token = consume(TokenType.IDENTIFIER, "Expect variable name.")
+        var initializer: Expr? = null
+        if (match(TokenType.EQUAL)) {
+            initializer = expression()
+        }
+        consume(TokenType.SEMI_COLON, "Expect ';' after variable declaration.")
+        return stmt.Var(name, initializer)
+    }
+    fun declaration() : stmt? {
+
+            if (match(TokenType.VAR)) {
+                return varDeclaration()
+//                return statement()
+            }
+        return statement()
+//            synchronize() to do after doing error reporting
+//            return null
+
+    }
     fun parse() : MutableList<stmt>? {
-        try {
+
 //            return expression()
             val statements : MutableList<stmt> = mutableListOf()
             while (!isAtEnd()){
-                statement()?.let { statements.add(it) }
-                return statements
+                declaration()?.let { statements.add(it) }
+         //       return statements
             }
-        }catch (error : ParseError){
-            return null
+        return statements
         }
-        return null
     }
 
 
-}
+
+
 
 

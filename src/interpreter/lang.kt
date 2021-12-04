@@ -27,9 +27,6 @@ var hadError : Boolean = false
 fun run(source: String) {
     val scanner = Scanner(source)
     scanner.scanTokens()
-//    for (tokens in scanner.tokens){
-//        println(tokens)
-//    }
     val parserr = parser(scanner.tokens)
     val expression = parserr.parse()
     val inter = interpreter()
@@ -51,6 +48,7 @@ fun error(line : Int, message: String){
 @Throws(IOException::class)
 private fun runFile(path: String) {
     val bytes = Files.readAllBytes(Paths.get(path))
+    println(String(bytes, Charset.defaultCharset()))
     run(String(bytes, Charset.defaultCharset()))
 }
 
