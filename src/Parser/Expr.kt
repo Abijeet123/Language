@@ -9,6 +9,7 @@ abstract class Expr {
    fun visitGroupingExpr(expr : Grouping) : R?
    fun visitLiteralExpr(expr : Literal) : R?
    fun visitUnaryExpr(expr : Unary) : R?
+   fun visitLogicalExpr(expr : Logical) : R?
    fun visitVariableExpr(expr : Variable) : R?
    fun visitAssignExpr(expr : Assign) : R?
   }
@@ -34,6 +35,12 @@ abstract class Expr {
 
     override fun <R>accept(visitor : Visitor<R>):R? {
       return visitor.visitUnaryExpr(this);
+    }
+  }
+ class Logical(val left : Expr, val operator : Token, val right : Expr) :Expr(){
+
+    override fun <R>accept(visitor : Visitor<R>):R? {
+      return visitor.visitLogicalExpr(this);
     }
   }
  class Variable(val name : Token) :Expr(){

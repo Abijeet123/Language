@@ -6,8 +6,10 @@ abstract class stmt {
   interface Visitor<R> {
    fun visitBlockstmt(stmt : Block) : R?
    fun visitExpressionstmt(stmt : Expression) : R?
+   fun visitIfstmt(stmt : If) : R?
    fun visitPrintstmt(stmt : Print) : R?
    fun visitVarstmt(stmt : Var) : R?
+   fun visitWhilestmt(stmt : While) : R?
   }
  class Block(val stmt: MutableList<stmt?>?) :stmt(){
 
@@ -21,6 +23,12 @@ abstract class stmt {
       return visitor.visitExpressionstmt(this);
     }
   }
+ class If(val condition: Expr, val thenBranch: stmt?, val elseBranch: stmt?) :stmt(){
+
+    override fun <R>accept(visitor : Visitor<R>):R? {
+      return visitor.visitIfstmt(this);
+    }
+  }
  class Print(val expression : Expr) :stmt(){
 
     override fun <R>accept(visitor : Visitor<R>):R? {
@@ -31,6 +39,12 @@ abstract class stmt {
 
     override fun <R>accept(visitor : Visitor<R>):R? {
       return visitor.visitVarstmt(this);
+    }
+  }
+ class While(val condition: Expr, val body: stmt?) :stmt(){
+
+    override fun <R>accept(visitor : Visitor<R>):R? {
+      return visitor.visitWhilestmt(this);
     }
   }
 

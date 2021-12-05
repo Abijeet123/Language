@@ -4,33 +4,45 @@ import Scanner.Token
 import Scanner.TokenType
 import Parser.stmt
 import java.lang.Exception
+import kotlin.math.exp
+import kotlin.reflect.typeOf
 
 
-
-
-
-
-
-
-
-
-var env = enviornment()
 class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
-    var envv = enviornment()
+    var env = enviornment()
+    //    var env = enviornment()
+    var envv = env
+
+    override fun visitWhilestmt(Stmt: stmt.While): Any? {
+        while (isTruthy(evaluate(Stmt.condition)) == true){
+            execute(Stmt.body)
+        }
+        return null
+    }
+
+    override fun visitIfstmt(Stmt: stmt.If): Any? {
+        if (isTruthy(evaluate(Stmt.condition)) == true){
+            execute(Stmt.thenBranch)
+        }else if (Stmt.elseBranch != null){
+            execute(Stmt.elseBranch)
+        }
+        return null
+    }
+
     override fun visitBlockstmt(Stmt: stmt.Block): Any? {
         executeBlock(Stmt.stmt, enviornment(env))
         return null
     }
 
     fun executeBlock(statements: MutableList<stmt?>?, envirn: enviornment){
-        val previous = env
+        val previous = this.envv
         try {
-            env = envirn
+            this.envv = envirn
             for (statement in statements!!) {
                 execute(statement)
             }
         } finally {
-            env = previous
+            this.envv = previous
         }
     }
     override fun visitLiteralExpr(expr: Expr.Literal): Any? {
@@ -51,7 +63,7 @@ class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
                 checkNumberOperand(expr.operator,right)
                 return -right.toString().toDouble()
             }
-            TokenType.BANG -> !isTruthy(right)
+            TokenType.BANG -> !isTruthy(right)!!
         }
         return null
     }
@@ -108,7 +120,7 @@ class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
         if (left == null) return false
         return left.equals(right)
     }
-    fun isTruthy(obj : Any?) : Boolean{
+    fun isTruthy(obj : Any?) : Boolean? {
         if (obj == null) return false
         if (obj is Boolean) return obj
         return false
@@ -163,9 +175,26 @@ class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
 
     override fun visitPrintstmt(stmt: stmt.Print): Any? {
         val value = evaluate(stmt.expression)
-//        println(value.toString())
-        return value.toString();
+        println(value.toString())
+        return null;
     }
+
+    override fun visitLogicalExpr(expr: Expr.Logical): Any? {
+        val left = evaluate(expr.left)
+        if (expr.operator.type == TokenType.OR && left is Boolean){
+            if (isTruthy(left) == true){
+                return left
+            }
+        }else if (isTruthy(left) == false){
+            println(isTruthy(1))
+            return left
+        }
+
+        return evaluate(expr.right)
+
+    }
+
+
 
 }
 

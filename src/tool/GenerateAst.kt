@@ -17,14 +17,17 @@ fun main(args: Array<String>) {
         "Grouping ! val expression : Expr",
         "Literal  ! val value : Any?",
         "Unary    ! val operator : Token, val right : Expr",
+        "Logical  ! val left : Expr, val operator : Token, val right : Expr ",
         "Variable ! val name : Token",
         "Assign ! val name : Token,val value : Expr"
     ));
     defineAst(outputDir, "stmt",Arrays.asList(
         "Block ! val stmt : MutableList<stmt?>",
         "Expression ! val expression : Expr",
+        "If ! val condition : Expr, val thenBranch : stmt, val elseBranch : stmt",
         "Print ! val expression : Expr",
-        "Var ! val name : Token, val initializer : Expr"
+        "Var ! val name : Token, val initializer : Expr",
+        "While ! val condition : Expr, val body : stmt"
     ))
 }
 

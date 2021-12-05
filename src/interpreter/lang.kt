@@ -48,7 +48,7 @@ fun error(line : Int, message: String){
 @Throws(IOException::class)
 private fun runFile(path: String) {
     val bytes = Files.readAllBytes(Paths.get(path))
-    println(String(bytes, Charset.defaultCharset()))
+//    println(String(bytes, Charset.defaultCharset()))
     run(String(bytes, Charset.defaultCharset()))
 }
 
