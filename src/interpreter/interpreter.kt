@@ -4,15 +4,51 @@ import Scanner.Token
 import Scanner.TokenType
 import Parser.stmt
 import java.lang.Exception
-import kotlin.math.exp
-import kotlin.reflect.typeOf
 
 
 class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
-    var env = enviornment()
+    final var env = enviornment()
     //    var env = enviornment()
-    var envv = env
+      var envv = env
+    //var envv = enviornment()
 
+    fun Interpreter() {
+        var clock = Token(TokenType.STRING,"clock",null,0)
+        env.define(clock, object : LangCallable {
+            override fun arity(): Int {
+                return 0
+            }
+
+            override fun call(
+                interpreter: interpreter?,
+                arguments: List<Any?>?
+            ): Any? {
+                return System.currentTimeMillis().toDouble() / 1000.0
+            }
+
+            override fun toString(): String {
+                return "<native fn>"
+            }
+        })
+    }
+
+    override fun visitCallExpr(expr: Expr.Call): Any? {
+        var callee = evaluate(expr.calle)
+        var arguments : MutableList<Any> = mutableListOf()
+        for (argument in expr.arguments){
+            evaluate(argument)?.let { arguments.add(it) }
+        }
+        if (callee !is LangCallable) {
+            throw Exception(
+                "Can only call functions and classes."
+            )
+        }
+        var function = callee as LangFunction
+        if (arguments.size != function.arity()){
+            throw  Exception("Expected ${function.arity()} arguments but got ${arguments.size}")
+        }
+                return function.call(this,arguments)
+    }
     override fun visitWhilestmt(Stmt: stmt.While): Any? {
         while (isTruthy(evaluate(Stmt.condition)) == true){
             execute(Stmt.body)
@@ -30,12 +66,12 @@ class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
     }
 
     override fun visitBlockstmt(Stmt: stmt.Block): Any? {
-        executeBlock(Stmt.stmt, enviornment(env))
+        executeBlock(Stmt.stmt, enviornment(env)) //change
         return null
     }
 
     fun executeBlock(statements: MutableList<stmt?>?, envirn: enviornment){
-        val previous = this.envv
+        val previous = envv
         try {
             this.envv = envirn
             for (statement in statements!!) {
@@ -78,6 +114,9 @@ class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
             TokenType.PLUS -> { if (left is Double && right is Double)
                 return left + right
                 if (left is String && right is String) return left + right
+            }
+            TokenType.MOD -> {    checkNumberOperand(expr.operator,left,right)
+                return left.toString().toDouble() % right.toString().toDouble()
             }
             TokenType.SLASH -> {checkNumberOperand(expr.operator, left,right)
                 return left.toString().toDouble() / right.toString().toDouble()
@@ -125,8 +164,11 @@ class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
         if (obj is Boolean) return obj
         return false
     }
-    fun evaluate(expr : Expr) : Any?{
-        return expr.accept(this)
+    fun evaluate(expr: Expr?) : Any?{
+        if (expr != null) {
+            return expr.accept(this)
+        }
+        return null
     }
 
     fun checkNumberOperand(operator : Token, left: Any?, right : Any?){
@@ -194,6 +236,11 @@ class interpreter : Expr.Visitor<Any>, stmt.Visitor<Any>{
 
     }
 
+    override fun visitFUNstmt(stmt: stmt.FUN): Any? {
+        val function = LangFunction(stmt)
+        envv.define(stmt.name, function)
+        return null
+    }
 
 
 }

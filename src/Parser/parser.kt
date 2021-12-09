@@ -9,15 +9,6 @@ import java.util.ArrayList
 import java.util.Arrays
 
 
-
-
-
-
-
-
-
-
-
 //import scanner.report
 
 //import Scanner.report
@@ -29,7 +20,7 @@ class parser(val tokens : List<Token>) {
     }
     var current = 0
 
-    fun assignment(): Expr {
+    fun assignment(): Expr? {
         val expr = or()
         if (match(TokenType.EQUAL)) {
             val equals = previous()
@@ -43,7 +34,7 @@ class parser(val tokens : List<Token>) {
         return expr
     }
 
-    fun or() : Expr{
+    fun or() : Expr?{
         var expr = and()
 
         while (match(TokenType.OR)){
@@ -54,7 +45,7 @@ class parser(val tokens : List<Token>) {
         return expr
     }
 
-    fun and() : Expr{
+    fun and() : Expr?{
         var expr = equality()
 
         while (match(TokenType.AND)){
@@ -65,10 +56,10 @@ class parser(val tokens : List<Token>) {
         return expr
     }
 
-    fun expression() : Expr {
+    fun expression() : Expr? {
         return assignment()
     }
-    fun equality() : Expr {
+    fun equality() : Expr? {
         var expr = comparision()
 
         while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)){
@@ -78,7 +69,7 @@ class parser(val tokens : List<Token>) {
         }
         return expr
     }
-    fun comparision() : Expr{
+    fun comparision() : Expr?{
         var expr = term()
 
         while (match(
@@ -92,10 +83,10 @@ class parser(val tokens : List<Token>) {
         return expr
     }
 
-    fun term() : Expr{
+    fun term() : Expr?{
         var expr = factor()
 
-        while (match(TokenType.MINUS,TokenType.PLUS)){
+        while (match(TokenType.MINUS,TokenType.PLUS,TokenType.MOD)){
             val operator = previous()
             val right = factor()
             expr = Expr.Binary(expr, operator, right)
@@ -103,7 +94,7 @@ class parser(val tokens : List<Token>) {
         return expr
     }
 
-    fun factor() : Expr{
+    fun factor() : Expr?{
         var expr = unary()
 
         while (match(TokenType.SLASH, TokenType.STAR)){
@@ -130,13 +121,42 @@ class parser(val tokens : List<Token>) {
         if (match(TokenType.IDENTIFIER)) return Expr.Variable(previous())
         throw error(peek(),"Expect expression")
     }
-    fun unary() : Expr{
+    fun unary() : Expr?{
         if (match(TokenType.BANG,TokenType.MINUS)){
             val operator = previous()
             val right = unary()
             return Expr.Unary(operator,right)
         }
-        return primary()
+        return call()
+    }
+
+    fun call(): Expr? {
+        var expr: Expr? = primary()
+        while (true) {
+            if (match(TokenType.LEFT_PAREN)) {
+                expr = finishCall(expr)
+            } else {
+                break
+            }
+        }
+        return expr
+    }
+
+    fun finishCall(callee: Expr?): Expr? {
+        val arguments: MutableList<Expr> = ArrayList()
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (arguments.size >= 255) {
+                    error(peek(), "Can't have more than 255 arguments.");
+                }
+                expression()?.let { arguments.add(it) }
+            } while (match(TokenType.COMMA))
+        }
+        val paren = consume(
+            TokenType.RIGHT_PAREN,
+            "Expect ')' after arguments."
+        )
+        return Expr.Call(callee, paren, arguments)
     }
 
     fun consume(token : TokenType, message : String) : Token{
@@ -297,10 +317,31 @@ class parser(val tokens : List<Token>) {
                 return varDeclaration()
 //                return statement()
             }
+            if (match(TokenType.FUN)) return function("function")
         return statement()
 //            synchronize() to do after doing error reporting
 //            return null
 
+    }
+
+    fun function(kind : String) : stmt.FUN{
+        val name = consume(TokenType.IDENTIFIER, "Expect $kind name.")
+        consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        var parameters : MutableList<Token> = mutableListOf()
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.size >= 255) {
+                    error(peek(), "Can't have more than 255 parameters.");
+                }
+
+                parameters.add(
+                    consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (match(TokenType.COMMA));
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+        consume(TokenType.LEFT_BRACE, "Expect '{' before $kind body.")
+        val body: MutableList<stmt?>? = block()
+        return stmt.FUN(name, parameters, body)
     }
     fun parse() : MutableList<stmt>? {
 

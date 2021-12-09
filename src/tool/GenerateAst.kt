@@ -14,6 +14,7 @@ fun main(args: Array<String>) {
 
     defineAst(outputDir, "Expr", Arrays.asList(
         "Binary   ! val left : Expr, val operator : Token, val right : Expr",
+        "Call     ! var calle : Expr,var paren : Token, var arguments : MutableList<Expr>",
         "Grouping ! val expression : Expr",
         "Literal  ! val value : Any?",
         "Unary    ! val operator : Token, val right : Expr",
@@ -23,7 +24,8 @@ fun main(args: Array<String>) {
     ));
     defineAst(outputDir, "stmt",Arrays.asList(
         "Block ! val stmt : MutableList<stmt?>",
-        "Expression ! val expression : Expr",
+        "Expression ! val expression : Expr" ,
+        "FUN ! var name : Token, var params : MutableList<Token>,var body : MutableList<stmt>",
         "If ! val condition : Expr, val thenBranch : stmt, val elseBranch : stmt",
         "Print ! val expression : Expr",
         "Var ! val name : Token, val initializer : Expr",

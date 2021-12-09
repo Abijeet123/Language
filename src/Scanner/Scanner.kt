@@ -121,6 +121,7 @@ class Scanner(val source : String) {
             '.' -> addToken(TokenType.DOT)
             '-' -> addToken(TokenType.MINUS)
             '+' -> addToken(TokenType.PLUS)
+            '%' -> addToken(TokenType.MOD)
             ';' -> addToken(TokenType.SEMI_COLON)
             '*' -> addToken(TokenType.STAR)
             '!' -> addToken(if(match('=')) TokenType.BANG_EQUAL else TokenType.BANG)
